@@ -6,9 +6,9 @@
 #define EMITTER_PIN 11
 
 int  Tp  = 50;
-float Ki = 0.01;
-float Kd = 8;
-float Kp = 0.8;
+float Ki = 0.01462;
+float Kd = 8.5;
+float Kp = 0.9;
 
 int lim = 90;
 
