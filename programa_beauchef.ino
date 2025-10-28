@@ -6,12 +6,10 @@
 #define EMITTER_PIN 11
 
 int  Tp  = 50;
-float Ki = 0.01462;
-float Kd = 8.5;
-float Kp = 0.9;
-
+float Ki = 0.01;
+float Kd = 4;
+float Kp = 0.4;
 int lim = 90;
-
 
 QTRSensorsAnalog qtra((unsigned char[]) {
   5, 4, 3, 2, 1, 0
@@ -22,7 +20,7 @@ unsigned int sensorValues[NUM_SENSORS];
 int posicion;
 float error;
 float lasterror;
-float derivada;
+float derivada=0;
 int ref = 0;
 int giro;
 int VelIzq = 0;
@@ -34,7 +32,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   inicializarMotores();
-  for (int i = 0; i < 200; i++) {
+  for (int i = 0; i < 100; i++) {
     qtra.calibrate();
     delay(1);
     digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -47,14 +45,13 @@ void setup() {
 void loop() {
   //el ultimo booleano de la funcion representa si es linea negra o blanca, si es true es blanca, si es false, es negra
 
-  posicion = qtra.readLine(sensorValues, true, true);
-
+  posicion = qtra.readLine(sensorValues, true, true);  
   //revisar como funciona map y maneras de optimizarlo
   posicion = map(posicion, 0, 5000, -lim, lim);
-
+  posicion = constrain(posicion+40,-lim,lim);
   error = posicion - ref;
   integral = integral + error;
-  derivada = error - lasterror;
+  derivada= error -lasterror;
   giro = Kp * error + Ki * integral + Kd * derivada;
 
   VelIzq = (Tp + giro);

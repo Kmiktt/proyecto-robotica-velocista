@@ -7,5 +7,3 @@
 #define BIN1 4 //pin 1 direccion motor derecho
 #define BIN2 7 //pin 2 direccion motor derecho
 #define PWMB 6 //PWM motor derecho
-
-#
