@@ -5,14 +5,14 @@
 #define NUM_SAMPLES_PER_SENSOR 4
 #define EMITTER_PIN 11
 
-int  Tp  = 50;
-float Ki = 0.01;
-float Kd = 4;
-float Kp = 0.4;
-int lim = 90;
+int  Tp  = 30;
+float Ki = 0.011;
+float Kd = 8;
+float Kp = 0.8;
+int lim = 70;
 
 QTRSensorsAnalog qtra((unsigned char[]) {
-  5, 4, 3, 2, 1, 0
+  6, 5, 4, 3, 2, 1
 },
 NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 unsigned int sensorValues[NUM_SENSORS];
@@ -48,7 +48,6 @@ void loop() {
   posicion = qtra.readLine(sensorValues, true, true);  
   //revisar como funciona map y maneras de optimizarlo
   posicion = map(posicion, 0, 5000, -lim, lim);
-  posicion = constrain(posicion+40,-lim,lim);
   error = posicion - ref;
   integral = integral + error;
   derivada= error -lasterror;
