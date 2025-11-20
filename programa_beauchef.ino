@@ -7,14 +7,11 @@
 #define buzzer 10
 
 int  Tp  = 40;
-float Ki = 0.01;
-float Kd = 9.6;
-float Kp = 0.3;
-int lim = 100;
-//cosas buzzer
-bool buzzerOn = false;
-unsigned long buzzerStart = 0;
-int buzzerDuration = 100;
+float Ki = 0.015;
+float Kd = 7.8;
+float Kp = 0.8;
+int lim = 70;
+
 QTRSensorsAnalog qtra((unsigned char[]) {
   6, 5, 4, 3, 2, 1
 },
@@ -39,14 +36,10 @@ int izq=0;
 int der=0;
 bool lastde=false;
 bool lastiz=false;
-bool contaiz=false;
-bool izprendido=false;
-bool deprendido=false;
-char destop=0;
+
+
 void setup() {
-  
-  while(!digitalRead(2))
-      {}
+  Serial.begin(9600);
 
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(buzzer, OUTPUT);
@@ -66,8 +59,6 @@ void setup() {
     digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
     delay(10);
   }
-  while(!digitalRead(2))
-      {}
 }
 
 void loop() {
@@ -87,51 +78,26 @@ void loop() {
   derivada= error -lasterror;
   giro = Kp * error + Ki * integral + Kd * derivada;
 
+  noTone(10);
   //aqui se activa solo si no fue activado antes
-  if((lastde==false&&der<500)) {
+  if(lastde==false&&der<500) {
     tone(10, 1000);
-    deprendido=true;
-    buzzerOn = true;
-    buzzerStart = millis();
+    delay(100);
   }
   lastde=(der<500);
   
-  if((lastiz==false&&izq<500)){
+  if(lastiz==false&&izq<500){
     tone(10, 1000);
-    izprendido=true;
-    buzzerOn = true;
-    buzzerStart = millis();
+    delay(100);
   }
-  
   lastiz=(izq<500);
   
   VelIzq = (Tp + giro);
   VelDer = (Tp - giro);
 
-  Motores(VelIzq, VelDer);
-  
-  
+  //Motores(VelIzq, VelDer);
+
   lasterror = error;
-  if (buzzerOn && millis() - buzzerStart >= buzzerDuration) {
-    if(izprendido&&deprendido){
-      izprendido=false;
-      deprendido=false;
-    }
-    if (izprendido){
-      Tp=(lim-abs(error))*0.3;
-    }
-    noTone(buzzer);
-    buzzerOn = false;
-    
-    if (deprendido){
-      destop+=1;
-    }
-    if (destop==2){
-      destop=0;
-      Motores(0,0);
-      while(!digitalRead(2))
-      {}
-    }
-  }
+
 
 }
