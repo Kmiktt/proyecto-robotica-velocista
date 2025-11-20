@@ -6,12 +6,20 @@
 #define EMITTER_PIN 11
 #define buzzer 10
 
-int  Tp  = 40;
-float Ki = 0.015;
-float Kd = 7.8;
-float Kp = 0.8;
-int lim = 70;
+int TpMax = 60;
+int TpMin = 25;
 
+int TpB=60;
+
+int  Tp  = 50;
+float Ki = 0.01;
+float Kd = 8.5;
+float Kp = 0.4;
+int lim = 100;
+//cosas buzzer
+bool buzzerOn = false;
+unsigned long buzzerStart = 0;
+int buzzerDuration = 50;
 QTRSensorsAnalog qtra((unsigned char[]) {
   6, 5, 4, 3, 2, 1
 },
@@ -20,7 +28,7 @@ NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 unsigned int sensorValues[NUM_SENSORS];
 
 int posicion;
-float error;
+float error=0;
 float lasterror;
 float derivada=0;
 int ref = 0;
@@ -36,11 +44,15 @@ int izq=0;
 int der=0;
 bool lastde=false;
 bool lastiz=false;
-
-
+bool contaiz=false;
+bool izprendido=false;
+bool deprendido=false;
+char destop=0;
 void setup() {
-  Serial.begin(9600);
-
+  while(!digitalRead(2))
+      {}
+  delay(200);
+  Motores(-20,20);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(buzzer, OUTPUT);
   inicializarMotores();
@@ -59,9 +71,14 @@ void setup() {
     digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
     delay(10);
   }
+  Motores(0,0);
+  while(!digitalRead(2))
+      {}
+  delay(200);
 }
 
 void loop() {
+  
   izq=analogRead(7);
   der=analogRead(0);
 
@@ -77,27 +94,58 @@ void loop() {
   integral = integral + error;
   derivada= error -lasterror;
   giro = Kp * error + Ki * integral + Kd * derivada;
-
-  noTone(10);
-  //aqui se activa solo si no fue activado antes
-  if(lastde==false&&der<500) {
-    tone(10, 1000);
-    delay(100);
-  }
-  lastde=(der<500);
+    //aqui se activa solo si no fue activado antes
+    if((lastde==false&&der<500)) {
+      tone(10, 1000);
+      deprendido=true;
+      buzzerOn = true;
+      buzzerStart = millis();
+    }
+    lastde=(der<500);
+    
+    if((lastiz==false&&izq<500)){
+      tone(10, 1000);
+      izprendido=true;
+      buzzerOn = true;
+      buzzerStart = millis();
+    }
+    
+    lastiz=(izq<500);
+    
+    VelIzq = (Tp + giro);
+    VelDer = (Tp - giro);
   
-  if(lastiz==false&&izq<500){
-    tone(10, 1000);
-    delay(100);
-  }
-  lastiz=(izq<500);
+    Motores(VelIzq, VelDer);
   
-  VelIzq = (Tp + giro);
-  VelDer = (Tp - giro);
-
-  //Motores(VelIzq, VelDer);
-
+  
   lasterror = error;
-
+  if (buzzerOn && millis() - buzzerStart >= buzzerDuration) {
+    if(izprendido&&deprendido){
+      izprendido=false;
+      deprendido=false;
+    }
+    if (izprendido){
+      /*
+      int absError = abs(error);
+      absError = constrain(absError, 0, lim);
+      
+      float factor = (float)absError / lim;
+      Tp = TpMax - factor * (TpMax - TpMin);
+      */
+    }
+    noTone(buzzer);
+    buzzerOn = false;
+    
+    if (deprendido){
+      destop+=1;
+    }
+    if (destop==2){
+      destop=0;
+      Motores(0,0);
+      Tp=TpB;
+      while(!digitalRead(2))
+      {}
+    }
+  }
 
 }
