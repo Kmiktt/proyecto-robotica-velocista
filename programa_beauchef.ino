@@ -9,11 +9,12 @@
 int TpMax = 60;
 int TpMin = 25;
 
-int TpB=60;
+int TpB=50;
+int TpC=70;
 
-int  Tp  = 50;
-float Ki = 0.01;
-float Kd = 8.5;
+int  Tp  = 40;
+float Ki = 0.012;
+float Kd = 8.7;
 float Kp = 0.4;
 int lim = 100;
 //cosas buzzer
@@ -85,15 +86,16 @@ void loop() {
   der=map(der,demin,demax,0,1000);
   izq=map(izq,izmin,izmax,0,1000);
   
-  //programar sensores laterales wa wa...
   //el ultimo booleano de la funcion representa si es linea negra o blanca, si es true es blanca, si es false, es negra
   posicion = qtra.readLine(sensorValues, true, true);  
-  //revisar como funciona map y maneras de optimizarlo
+
   posicion = map(posicion, 0, 5000, -lim, lim);
   error = posicion - ref;
   integral = integral + error;
   derivada= error -lasterror;
   giro = Kp * error + Ki * integral + Kd * derivada;
+  if(error<60)
+  {
     //aqui se activa solo si no fue activado antes
     if((lastde==false&&der<500)) {
       tone(10, 1000);
@@ -116,6 +118,14 @@ void loop() {
     VelDer = (Tp - giro);
   
     Motores(VelIzq, VelDer);
+  }
+  else
+  {
+    if(error<0)
+      Motores(0, -error/2);
+    else
+      Motores(error/2,0);
+  }
   
   
   lasterror = error;
@@ -125,6 +135,7 @@ void loop() {
       deprendido=false;
     }
     if (izprendido){
+      izprendido=false;
       /*
       int absError = abs(error);
       absError = constrain(absError, 0, lim);
@@ -138,13 +149,15 @@ void loop() {
     
     if (deprendido){
       destop+=1;
+      deprendido=false;
     }
     if (destop==2){
+      Tp=TpB;
       destop=0;
       Motores(0,0);
-      Tp=TpB;
       while(!digitalRead(2))
       {}
+      delay(200);
     }
   }
 
