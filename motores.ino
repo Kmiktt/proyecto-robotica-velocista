@@ -11,13 +11,13 @@ void inicializarMotores(){
 //si es que ese no es el caso igual podemos ponerle una mascara a value en vez de multiplicarlo por -1
 void MotorIz(int value){
   if(value>=0){
-    digitalWrite(AIN2,LOW);
-    digitalWrite(AIN1,HIGH);
+    PORTB=PORTB&B11111101;
+    PORTB=PORTB|B00000001;
   }
   else{
     //va en reverza
-    digitalWrite(AIN1,LOW);
-    digitalWrite(AIN2,HIGH);
+    PORTB=PORTB&B11111110;
+    PORTB=PORTB|B00000010;
     value = (value ^ 0xFFFF) + 1;
   }
   analogWrite(PWMA,value);
