@@ -10,7 +10,7 @@ int TpMax = 60;
 int TpMin = 25;
 
 int TpB=65;
-int TpC=754;
+int TpC=75;
 
 int  Tp  = 60;
 float Ki = 0.01;
