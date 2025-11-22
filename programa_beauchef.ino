@@ -9,14 +9,14 @@
 int TpMax = 60;
 int TpMin = 25;
 
-int TpB=50;
-int TpC=70;
+int TpB=65;
+int TpC=754;
 
-int  Tp  = 40;
-float Ki = 0.012;
+int  Tp  = 60;
+float Ki = 0.01;
 float Kd = 8.7;
 float Kp = 0.4;
-int lim = 100;
+int lim = 90;
 //cosas buzzer
 bool buzzerOn = false;
 unsigned long buzzerStart = 0;
@@ -28,6 +28,7 @@ NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 
 unsigned int sensorValues[NUM_SENSORS];
 
+int vuelta=0;
 int posicion;
 float error=0;
 float lasterror;
@@ -52,8 +53,8 @@ char destop=0;
 void setup() {
   while(!digitalRead(2))
       {}
-  delay(200);
-  Motores(-20,20);
+  delay(400);
+  Motores(-30,30);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(buzzer, OUTPUT);
   inicializarMotores();
@@ -67,15 +68,15 @@ void setup() {
     if (der > demax) demax = der;
     
     delay(1);
-    digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(10);                       // wait for a second
-    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(10);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(10);
   }
   Motores(0,0);
   while(!digitalRead(2))
       {}
-  delay(200);
+  delay(400);
 }
 
 void loop() {
@@ -86,7 +87,6 @@ void loop() {
   der=map(der,demin,demax,0,1000);
   izq=map(izq,izmin,izmax,0,1000);
   
-  //el ultimo booleano de la funcion representa si es linea negra o blanca, si es true es blanca, si es false, es negra
   posicion = qtra.readLine(sensorValues, true, true);  
 
   posicion = map(posicion, 0, 5000, -lim, lim);
@@ -94,9 +94,15 @@ void loop() {
   integral = integral + error;
   derivada= error -lasterror;
   giro = Kp * error + Ki * integral + Kd * derivada;
-  if(error<60)
-  {
-    //aqui se activa solo si no fue activado antes
+  
+  if(abs(error)>=lim){
+    if(error<0)
+        Motores(-10,40);
+      else
+        Motores(40,-10);
+  }
+  else{
+  
     if((lastde==false&&der<500)) {
       tone(10, 1000);
       deprendido=true;
@@ -111,25 +117,13 @@ void loop() {
       buzzerOn = true;
       buzzerStart = millis();
     }
-    
     lastiz=(izq<500);
-    
     VelIzq = (Tp + giro);
     VelDer = (Tp - giro);
-  
     Motores(VelIzq, VelDer);
   }
-  else
-  {
-    if(error<0)
-      Motores(0, -error/2);
-    else
-      Motores(error/2,0);
-  }
-  
-  
   lasterror = error;
-  if (buzzerOn && millis() - buzzerStart >= buzzerDuration) {
+  if (buzzerOn && millis() - buzzerStart >= buzzerDuration){
     if(izprendido&&deprendido){
       izprendido=false;
       deprendido=false;
@@ -152,13 +146,14 @@ void loop() {
       deprendido=false;
     }
     if (destop==2){
-      Tp=TpB;
+      vuelta+=1;
+      if(vuelta==1)Tp=TpB;
+      if(vuelta==2)Tp=TpC;
       destop=0;
       Motores(0,0);
       while(!digitalRead(2))
       {}
-      delay(200);
+      delay(400);
     }
   }
-
 }

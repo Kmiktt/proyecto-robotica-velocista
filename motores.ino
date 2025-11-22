@@ -25,13 +25,13 @@ void MotorIz(int value){
 //lo mismo aqui
 void MotorDe(int value){
   if(value>=0){
-    digitalWrite(BIN2,LOW);
-    digitalWrite(BIN1,HIGH);
+    PORTD=PORTD&B01111111;
+    PORTD=PORTD|B00010000;
 
   }
   else{
-    digitalWrite(BIN1,LOW);
-    digitalWrite(BIN2,HIGH);
+    PORTD=PORTD&B11101111;
+    PORTD=PORTD|B10000000;
 
     value = (value ^ 0xFFFF) + 1; 
   }
